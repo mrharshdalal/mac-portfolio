@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+:root {
+  --background: #e9edf2;
+  --foreground: #1d1d1f;
+  --mac-blue: #007aff;
+  --mac-red: #ff5f57;
+  --mac-yellow: #febc2e;
+  --mac-green: #28c840;
+  --mac-glass: rgba(255, 255, 255, 0.55);
+  --mac-glass-border: rgba(255, 255, 255, 0.45);
+  --mac-shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
+  --mac-menubar: rgba(246, 246, 246, 0.72);
+  --dock-bg: rgba(255, 255, 255, 0.42);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-mac-blue: var(--mac-blue);
+  --color-mac-red: var(--mac-red);
+  --color-mac-yellow: var(--mac-yellow);
+  --color-mac-green: var(--mac-green);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-instrument);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--mac-blue) 35%, transparent);
+}
+
+.mac-glass {
+  background: var(--mac-glass);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid var(--mac-glass-border);
+}
+
+.noise-overlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+.custom-cursor-active,
+.custom-cursor-active * {
+  cursor: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
