@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy": "VERCEL_FORCE_NO_UPDATE=1 vercel --prod --yes --token=$VERCEL_TOKEN"
   },
   "dependencies": {
     "@radix-ui/react-context-menu": "^2.3.4",
@@ -27,6 +28,7 @@
     "react-dom": "19.2.4",
     "react-use": "^17.6.1",
     "tailwind-merge": "^3.6.0",
+    "vercel": "^56.5.0",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState } from "react";
 import { AppIcon } from "@/components/ui/AppIcon";
 import { GRID } from "@/lib/apps-registry";
@@ -120,11 +120,13 @@ function DesktopIconItem({
             typeof pos.left === "number"
               ? pos.left
               : window.innerWidth - GRID.offsetX - 210;
+          const topVal =
+            typeof pos.top === "number" ? pos.top : GRID.offsetY;
           const gx = Math.round(
             (baseLeft + info.offset.x - GRID.offsetX) / GRID.cellWidth,
           );
           const gy = Math.round(
-            (pos.top + info.offset.y - GRID.offsetY) / GRID.cellHeight,
+            (topVal + info.offset.y - GRID.offsetY) / GRID.cellHeight,
           );
           onMove(Math.max(0, gx), Math.max(0, gy));
         }}
