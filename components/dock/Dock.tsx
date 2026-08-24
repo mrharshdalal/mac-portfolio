@@ -10,6 +10,9 @@ import { useAppsStore } from "@/store/apps";
 import { useWindowsStore } from "@/store/windows";
 import type { AppId } from "@/types";
 
+const DOCK_HEIGHT = 56;
+const ICON_SIZE = 42;
+
 interface DockProps {
   visible?: boolean;
 }
@@ -53,7 +56,8 @@ export function Dock({ visible = true }: DockProps) {
         >
           <div
             ref={containerRef}
-            className="pointer-events-auto relative mx-auto flex items-end justify-center"
+            className="pointer-events-auto relative mx-auto flex items-center justify-center"
+            style={{ height: DOCK_HEIGHT }}
             onMouseMove={onMouseMove}
             onMouseLeave={onMouseLeave}
             role="toolbar"
@@ -64,7 +68,7 @@ export function Dock({ visible = true }: DockProps) {
               blur(57px) + border + soft shadow + dock-base.png
             */}
             <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-[56px] overflow-hidden rounded-[17px] border-[0.84px] border-solid border-white/15 shadow-[0_0_31px_rgba(0,0,0,0.25),0_0_1.5px_rgba(0,0,0,0.3)] backdrop-blur-[57px]"
+              className="pointer-events-none absolute inset-0 overflow-hidden rounded-[17px] border-[0.84px] border-solid border-white/15 shadow-[0_0_31px_rgba(0,0,0,0.25),0_0_1.5px_rgba(0,0,0,0.3)] backdrop-blur-[57px]"
               aria-hidden
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -76,7 +80,10 @@ export function Dock({ visible = true }: DockProps) {
               />
             </div>
 
-            <div className="relative z-10 flex items-end justify-center gap-0 px-2 pt-0.5 pb-[5px]">
+            <div
+              className="relative z-10 flex h-full items-center justify-center gap-0 px-2.5"
+              style={{ height: DOCK_HEIGHT }}
+            >
               {dockApps.map((item, index) => (
                 <DockIcon
                   key={item.id}
@@ -125,11 +132,11 @@ function DockIcon({
 
   return (
     <>
-      <div className="relative flex flex-col items-center px-px">
+      <div className="relative flex h-full items-center justify-center px-px">
         <AnimatePresence>
           {hovered && (
             <motion.div
-              className="absolute -top-8 rounded-md border border-black/10 bg-[#2c2c2e]/92 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-white shadow-lg backdrop-blur-md"
+              className="absolute -top-8 left-1/2 z-20 -translate-x-1/2 rounded-md border border-black/10 bg-[#2c2c2e]/92 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-white shadow-lg backdrop-blur-md"
               initial={{ opacity: 0, y: 4, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 4, scale: 0.96 }}
@@ -157,10 +164,11 @@ function DockIcon({
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
-          <AppIcon name={icon} size={42} variant="dock" />
+          <AppIcon name={icon} size={ICON_SIZE} variant="dock" />
         </motion.button>
+        {/* Running indicator — absolute so it doesn't shift icon vertical centering */}
         <div
-          className="mt-0.5 flex h-[7px] items-start justify-center"
+          className="pointer-events-none absolute inset-x-0 bottom-[3px] flex items-center justify-center"
           aria-hidden
         >
           {running ? (
@@ -172,22 +180,20 @@ function DockIcon({
               className="opacity-80"
               unoptimized
             />
-          ) : (
-            <span className="size-[3px] opacity-0" />
-          )}
+          ) : null}
         </div>
       </div>
       {separatorAfter && (
         <div
-          className="mx-1 mb-1.5 flex h-9 items-center self-end"
+          className="mx-1.5 flex h-full items-center self-center"
           aria-hidden
         >
           <Image
             src="/dock/icons/divider.png"
             alt=""
             width={2}
-            height={36}
-            className="h-9 w-[2px] opacity-70"
+            height={32}
+            className="h-8 w-[2px] opacity-70"
             unoptimized
           />
         </div>
