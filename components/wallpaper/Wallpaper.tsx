@@ -1,9 +1,11 @@
 "use client";
 
 import { motion, useMotionTemplate, useMotionValue, useSpring } from "framer-motion";
-import { useEffect } from "react";
+import gsap from "gsap";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/cn";
 import { portfolio } from "@/data/portfolio";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useSettingsStore } from "@/store/settings";
 import type { WallpaperId } from "@/types";
 
@@ -107,8 +109,160 @@ function SoftGrid() {
 }
 
 function HeroText({ visible }: { visible: boolean }) {
+  const accentRef = useRef<HTMLHeadingElement>(null);
+  const reduced = usePrefersReducedMotion();
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const skipHover = reduced || reduceMotion;
+
+  useEffect(() => {
+    const accent = accentRef.current;
+    if (!accent || skipHover || !visible) return;
+
+    const chars = Array.from(
+      accent.querySelectorAll<HTMLElement>("[data-hero-char]"),
+    );
+    if (!chars.length) return;
+
+    gsap.set(chars, {
+      transformOrigin: "50% 100%",
+      force3D: true,
+      fontWeight: 400,
+      webkitTextStroke: "0px currentColor",
+    });
+
+    const quickTo = chars.map((el) => ({
+      x: gsap.quickTo(el, "x", { duration: 0.45, ease: "power3.out" }),
+      y: gsap.quickTo(el, "y", { duration: 0.45, ease: "power3.out" }),
+      rotate: gsap.quickTo(el, "rotation", {
+        duration: 0.5,
+        ease: "power3.out",
+      }),
+      scale: gsap.quickTo(el, "scale", { duration: 0.35, ease: "power2.out" }),
+      weight: gsap.quickTo(el, "fontWeight", {
+        duration: 0.28,
+        ease: "power2.out",
+      }),
+    }));
+
+    const rests = chars.map(() => ({ x: 0, y: 0 }));
+    let hovering = false;
+    let raf = 0;
+    let pointerX = 0;
+    let pointerY = 0;
+
+    const cacheRests = () => {
+      chars.forEach((el, i) => {
+        const rect = el.getBoundingClientRect();
+        // Undo current transform so magnet math uses resting centers
+        const x = Number(gsap.getProperty(el, "x")) || 0;
+        const y = Number(gsap.getProperty(el, "y")) || 0;
+        rests[i] = {
+          x: rect.left + rect.width / 2 - x,
+          y: rect.top + rect.height / 2 - y,
+        };
+      });
+    };
+
+    const applyMagnet = () => {
+      raf = 0;
+      if (!hovering) return;
+
+      // Refresh rests so weight/stroke reflow stays aligned with the pointer
+      cacheRests();
+
+      chars.forEach((el, i) => {
+        const dx = pointerX - rests[i].x;
+        const dy = pointerY - rests[i].y;
+        const dist = Math.hypot(dx, dy);
+        const radius = 160;
+        const force = Math.max(0, 1 - dist / radius);
+        const pull = force * force;
+        const mid = (i - (chars.length - 1) / 2) / chars.length;
+
+        quickTo[i].x(dx * pull * 0.32);
+        quickTo[i].y(dy * pull * 0.24 - pull * 12);
+        quickTo[i].rotate(dx * pull * 0.045 + mid * pull * 10);
+        quickTo[i].scale(1 + pull * 0.14);
+        // Instrument Serif is single-weight — bold + stroke reads as real weight
+        quickTo[i].weight(400 + pull * 350);
+        el.style.webkitTextStroke = `${(pull * 1.15).toFixed(2)}px currentColor`;
+      });
+    };
+
+    const onMove = (e: PointerEvent) => {
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+      if (!raf) raf = requestAnimationFrame(applyMagnet);
+    };
+
+    const onEnter = (e: PointerEvent) => {
+      hovering = true;
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+      cacheRests();
+
+      gsap.to(accent, {
+        letterSpacing: "0.045em",
+        duration: 0.55,
+        ease: "power3.out",
+      });
+      gsap.to(chars, {
+        color: "#18181b",
+        textShadow: "0 14px 32px rgba(24,24,27,0.2)",
+        duration: 0.4,
+        stagger: { each: 0.018, from: "center" },
+        ease: "power2.out",
+      });
+
+      if (!raf) raf = requestAnimationFrame(applyMagnet);
+    };
+
+    const onLeave = () => {
+      hovering = false;
+      if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+
+      gsap.to(accent, {
+        letterSpacing: "0em",
+        duration: 0.7,
+        ease: "elastic.out(1, 0.55)",
+      });
+      gsap.to(chars, {
+        x: 0,
+        y: 0,
+        rotation: 0,
+        scale: 1,
+        fontWeight: 400,
+        color: "#27272a",
+        textShadow: "0 0 0 rgba(0,0,0,0)",
+        webkitTextStroke: "0px currentColor",
+        duration: 0.9,
+        stagger: { each: 0.022, from: "edges" },
+        ease: "elastic.out(1, 0.45)",
+      });
+    };
+
+    accent.addEventListener("pointerenter", onEnter);
+    accent.addEventListener("pointermove", onMove);
+    accent.addEventListener("pointerleave", onLeave);
+    window.addEventListener("resize", cacheRests);
+
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      accent.removeEventListener("pointerenter", onEnter);
+      accent.removeEventListener("pointermove", onMove);
+      accent.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("resize", cacheRests);
+      gsap.killTweensOf([accent, ...chars]);
+    };
+  }, [skipHover, visible]);
+
+  const accentChars = Array.from(portfolio.taglineAccent);
+
   return (
-    <div className="absolute inset-0 flex items-center justify-center px-6">
+    <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-6">
       <div className="max-w-3xl text-center">
         <motion.p
           className="mb-5 text-[11px] font-medium tracking-[0.28em] text-zinc-500 uppercase"
@@ -126,8 +280,10 @@ function HeroText({ visible }: { visible: boolean }) {
         >
           {portfolio.tagline}
         </motion.p>
-        <motion.p
-          className="font-[family-name:var(--font-instrument)] text-[clamp(3rem,8vw,6rem)] italic leading-[0.92] text-zinc-800"
+        <motion.h1
+          ref={accentRef}
+          data-hero-accent
+          className="pointer-events-auto font-[family-name:var(--font-instrument)] text-[clamp(3rem,8vw,6rem)] italic leading-[0.92] text-zinc-800"
           initial={{ opacity: 0, y: 18, filter: "blur(6px)" }}
           animate={{
             opacity: visible ? 1 : 0,
@@ -135,9 +291,18 @@ function HeroText({ visible }: { visible: boolean }) {
             filter: visible ? "blur(0px)" : "blur(6px)",
           }}
           transition={{ duration: 0.9, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          aria-label={portfolio.taglineAccent}
         >
-          {portfolio.taglineAccent}
-        </motion.p>
+          {accentChars.map((char, i) => (
+            <span
+              key={`${char}-${i}`}
+              data-hero-char
+              className="inline-block origin-bottom will-change-transform"
+            >
+              {char === " " ? "\u00A0" : char}
+            </span>
+          ))}
+        </motion.h1>
         <motion.p
           className="mt-6 text-[13px] tracking-wide text-zinc-500"
           initial={{ opacity: 0 }}

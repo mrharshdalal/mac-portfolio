@@ -26,7 +26,10 @@ export function DesktopIcons({ visible = true }: DesktopIconsProps) {
   if (!visible) return null;
 
   return (
-    <div className="absolute inset-0 z-10 pt-8" aria-label="Desktop icons">
+    <div
+      className="pointer-events-none absolute inset-0 z-10 pt-8"
+      aria-label="Desktop icons"
+    >
       {icons.map((icon, i) => (
         <DesktopIconItem
           key={icon.id}
@@ -94,7 +97,7 @@ function DesktopIconItem({
       <motion.button
         type="button"
         data-desktop-icon
-        className="absolute w-[210px] origin-top-left rounded-[2px] bg-[#fef08a] p-3.5 text-left shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+        className="pointer-events-auto absolute w-[210px] origin-top-left rounded-[2px] bg-[#fef08a] p-3.5 text-left shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
         style={{
           left: pos.left,
           top: pos.top,
@@ -171,7 +174,7 @@ function DesktopIconItem({
       type="button"
       data-desktop-icon
       className={cn(
-        "absolute flex w-[88px] flex-col items-center gap-1.5 rounded-lg p-1.5",
+        "pointer-events-auto absolute flex w-[88px] flex-col items-center gap-1.5 rounded-lg p-1.5",
         selected && "bg-mac-blue/20 ring-1 ring-mac-blue/35",
         icon.type === "trash" && "max-[720px]:hidden",
       )}
